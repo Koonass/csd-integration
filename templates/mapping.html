@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Mapping - CSD Portal Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .nav-link {
+            color: #2196F3;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: #e3f2fd;
+            font-size: 14px;
+        }
+        .nav-link:hover {
+            background: #bbdefb;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        .warning-box {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        .field-name {
+            font-family: 'Courier New', monospace;
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .required-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .optional-badge {
+            background: #868e96;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .composite-badge {
+            background: #9c27b0;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .notes {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Field Mapping Configuration</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/submissions" class="nav-link">All Submissions</a>
+                <a href="/mapping" class="nav-link">Field Mapping</a>
+            </div>
+        </header>
+
+        <div class="info-box">
+            <strong>About Field Mapping:</strong> This configuration maps JotForm fields to CSD Portal fields.
+            Fields marked as COMPOSITE_NOTES will be combined into a special instructions field.
+            Last updated: {{ mapping.last_updated }}
+        </div>
+
+        <div class="warning-box">
+            <strong>Important:</strong> To edit mappings, modify the <code>field_mapping.json</code> file directly.
+            Future versions will include a web-based editor.
+        </div>
+
+        <div class="card">
+            <h2>Current Field Mappings ({{ mapping.mappings|length }} fields)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>JotForm Field</th>
+                        <th>Label</th>
+                        <th>CSD Portal Field</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Transform</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in mapping.mappings %}
+                    <tr>
+                        <td><span class="field-name">{{ field.jotform_field }}</span></td>
+                        <td>{{ field.jotform_label }}</td>
+                        <td><span class="field-name">{{ field.csd_field }}</span></td>
+                        <td>{{ field.csd_field_type }}</td>
+                        <td>
+                            {% if field.required %}
+                            <span class="required-badge">Required</span>
+                            {% else %}
+                            <span class="optional-badge">Optional</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if field.transform %}
+                            <span class="composite-badge">{{ field.transform }}</span>
+                            {% else %}
+                            Direct
+                            {% endif %}
+                        </td>
+                        <td class="notes">{{ field.notes }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>CSD Required Fields</h2>
+            <p>The following fields are required by CSD Portal and will be auto-filled if not provided:</p>
+            <pre>{{ mapping.csd_required_fields | tojson(indent=2) }}</pre>
+        </div>
+
+        <div class="card">
+            <h2>Raw Configuration</h2>
+            <p>Complete field mapping configuration:</p>
+            <pre>{{ mapping | tojson(indent=2) }}</pre>
+        </div>
+    </div>
+</body>
+</html>

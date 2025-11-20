@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Submissions - CSD Portal Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .nav-link {
+            color: #2196F3;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: #e3f2fd;
+            font-size: 14px;
+        }
+        .nav-link:hover {
+            background: #bbdefb;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .action-link {
+            color: #2196F3;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+        .action-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>All Submissions</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/submissions" class="nav-link">All Submissions</a>
+                <a href="/mapping" class="nav-link">Field Mapping</a>
+            </div>
+        </header>
+
+        <div class="card">
+            <h2>Submission History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Submission Date</th>
+                        <th>JotForm ID</th>
+                        <th>Builder Name</th>
+                        <th>Plan Name</th>
+                        <th>Status</th>
+                        <th>CSD Date</th>
+                        <th>Retries</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in submissions %}
+                    <tr>
+                        <td>{{ sub.id }}</td>
+                        <td>{{ sub.submission_date }}</td>
+                        <td>{{ sub.jotform_submission_id }}</td>
+                        <td>{{ sub.builder_name or 'N/A' }}</td>
+                        <td>{{ sub.plan_name or 'N/A' }}</td>
+                        <td>
+                            <span class="status-badge status-{{ sub.csd_submission_status }}">
+                                {{ sub.csd_submission_status }}
+                            </span>
+                        </td>
+                        <td>{{ sub.csd_submission_date or 'N/A' }}</td>
+                        <td>{{ sub.retry_count }}</td>
+                        <td>
+                            <a href="/submission/{{ sub.id }}" class="action-link">View</a>
+                            {% if sub.csd_submission_status == 'failed' %}
+                            <a href="#" onclick="retrySubmission({{ sub.id }}); return false;" class="action-link">Retry</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function retrySubmission(id) {
+            if (confirm('Retry this submission?')) {
+                fetch('/retry/' + id, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Submission retried successfully!');
+                        location.reload();
+                    } else {
+                        alert('Retry failed: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

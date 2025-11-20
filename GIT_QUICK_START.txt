@@ -1,0 +1,198 @@
+=====================================
+GIT & GITHUB - QUICK START CHECKLIST
+=====================================
+
+PART 1: INSTALL GIT (5 min)
+============================
+□ Go to: https://git-scm.com/download/win
+□ Download and install (use all default settings)
+□ Open Command Prompt and test: git --version
+□ Should see: git version 2.XX.X
+
+PART 2: CREATE GITHUB ACCOUNT (3 min)
+=====================================
+□ Go to: https://github.com/signup
+□ Sign up with your email
+□ Verify email
+□ Log in to GitHub
+□ Click "+" in top right → "New repository"
+□ Name: csd-integration
+□ Visibility: Private (recommended)
+□ DON'T check "Initialize with README"
+□ Click "Create repository"
+□ KEEP THIS PAGE OPEN (you'll need it)
+
+PART 3: UPLOAD CODE TO GITHUB (5 min)
+=====================================
+
+Step 1: Configure Git (first time only)
+----------------------------------------
+Open your WSL terminal and run:
+
+cd /mnt/c/code/JOTFORM\ WEBHOOK/csd_integration
+
+git config --global user.name "Your Name"
+git config --global user.email "your@email.com"
+
+Step 2: Initialize and Upload
+------------------------------
+□ Run: git init
+□ Run: git add .
+□ Run: git commit -m "Initial commit"
+
+Step 3: Connect to GitHub
+--------------------------
+On the GitHub page from Part 2, copy the repository URL
+(looks like: https://github.com/yourusername/csd-integration.git)
+
+□ Run: git remote add origin https://github.com/YOURUSERNAME/csd-integration.git
+□ Run: git branch -M main
+
+Step 4: Create Access Token
+----------------------------
+□ Go to: https://github.com/settings/tokens
+□ Click "Generate new token" → "Generate new token (classic)"
+□ Name: "PythonAnywhere Deploy"
+□ Check: ✅ repo
+□ Click "Generate token" at bottom
+□ COPY THE TOKEN (starts with ghp_)
+□ SAVE IT IN NOTEPAD (you'll need it twice)
+
+Step 5: Push to GitHub
+-----------------------
+□ Run: git push -u origin main
+□ Username: your GitHub username
+□ Password: PASTE THE TOKEN (not your password!)
+□ Go to GitHub page and refresh - you should see all files!
+
+PART 4: DOWNLOAD TO PYTHONANYWHERE (2 min)
+==========================================
+□ Log into PythonAnywhere.com
+□ Click "Consoles" tab
+□ Click "Bash"
+
+In the console, run:
+□ cd ~
+□ git clone https://github.com/YOURUSERNAME/csd-integration.git
+   (Username: your GitHub username)
+   (Password: PASTE THE TOKEN again)
+
+□ Run: cd csd-integration
+□ Run: ls
+□ You should see all your files!
+
+PART 5: INSTALL DEPENDENCIES (3 min)
+====================================
+In PythonAnywhere bash console:
+
+□ Run: python3.10 -m venv venv
+□ Run: source venv/bin/activate
+□ Run: pip install -r requirements.txt
+□ Wait for it to finish (you'll see "Successfully installed...")
+
+PART 6: CONFIGURE WEB APP (5 min)
+==================================
+□ Go to "Web" tab in PythonAnywhere
+□ Click "Add a new web app"
+□ Click "Next"
+□ Choose "Manual configuration"
+□ Choose "Python 3.10"
+□ Click "Next" until web app is created
+
+Edit WSGI File:
+□ In Web tab, find "Code" section
+□ Click the WSGI configuration file link
+□ DELETE all existing content
+□ PASTE this (replace YOURUSERNAME with your actual username):
+
+---START COPYING HERE---
+import sys
+import os
+
+project_home = '/home/YOURUSERNAME/csd-integration'
+if project_home not in sys.path:
+    sys.path = [project_home] + sys.path
+
+activate_this = os.path.join(project_home, 'venv/bin/activate_this.py')
+with open(activate_this) as file_:
+    exec(file_.read(), dict(__file__=activate_this))
+
+from app import app as application
+---STOP COPYING HERE---
+
+□ Save the file (Ctrl+S or click Save button)
+
+Set Paths in Web Tab:
+□ Source code: /home/YOURUSERNAME/csd-integration
+□ Working directory: /home/YOURUSERNAME/csd-integration
+□ Virtualenv: /home/YOURUSERNAME/csd-integration/venv
+
+□ Scroll to top
+□ Click big green "Reload yourusername.pythonanywhere.com" button
+
+PART 7: TEST DEPLOYMENT (2 min)
+===============================
+□ Open browser to: https://YOURUSERNAME.pythonanywhere.com
+□ You should see the dashboard!
+□ Test health: https://YOURUSERNAME.pythonanywhere.com/health
+□ Should return JSON with "status": "healthy"
+
+If you see errors:
+- Click "Error log" link in Web tab
+- Check what went wrong
+- Common issues:
+  - Wrong username in WSGI file
+  - Wrong virtualenv path
+  - Forgot to reload web app
+
+PART 8: UPDATE JOTFORM (2 min)
+==============================
+□ Go to: https://form.jotform.com/240734091032042
+□ Click "Settings"
+□ Click "Integrations"
+□ Click "Webhooks"
+□ Add or edit webhook
+□ Set URL to: https://YOURUSERNAME.pythonanywhere.com/csd-webhook
+□ Save
+□ Click "Test Webhook" button
+□ Should say success!
+
+PART 9: SUBMIT TEST FORM (1 min)
+================================
+□ Submit your JotForm with test data
+□ Go to: https://YOURUSERNAME.pythonanywhere.com
+□ You should see your submission!
+□ Click to view details
+□ Verify data looks correct
+
+=====================================
+🎉 DONE! Your webhook is live!
+=====================================
+
+Your URLs:
+- Dashboard: https://YOURUSERNAME.pythonanywhere.com
+- Webhook: https://YOURUSERNAME.pythonanywhere.com/csd-webhook
+
+=====================================
+UPDATING CODE LATER
+=====================================
+
+When you make changes on your computer:
+
+□ cd /mnt/c/code/JOTFORM\ WEBHOOK/csd_integration
+□ git add .
+□ git commit -m "Description of changes"
+□ git push
+
+Then on PythonAnywhere:
+□ Open Bash console
+□ cd ~/csd-integration
+□ git pull
+□ Go to Web tab → Click "Reload"
+
+That's it! Changes are live!
+
+=====================================
+NEED HELP?
+=====================================
+See: GIT_GITHUB_BEGINNER_GUIDE.md for detailed explanations

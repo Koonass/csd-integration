@@ -1,0 +1,203 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-11-14",
+  "notes": "Field mapping from JotForm to CSD Portal. Update this file to modify mappings.",
+  "csd_required_fields": {
+    "ctl00_cphBody_txtProjectName": "Project Name (REQUIRED by CSD)",
+    "ctl00_cphBody_ddlProvince": "Province/State (REQUIRED by CSD)"
+  },
+  "mappings": [
+    {
+      "jotform_field": "builderName",
+      "jotform_label": "Builder Name",
+      "csd_field": "ctl00_cphBody_txtBuilderName",
+      "csd_field_type": "text",
+      "required": true,
+      "transform": null,
+      "notes": "Main builder/company name"
+    },
+    {
+      "jotform_field": "lotAnd",
+      "jotform_label": "Lot and Subdivision",
+      "csd_field": "ctl00_cphBody_txtAddress",
+      "csd_field_type": "text",
+      "required": false,
+      "transform": null,
+      "notes": "Lot and subdivision -> Address field"
+    },
+    {
+      "jotform_field": "planName",
+      "jotform_label": "Plan Name",
+      "csd_field": "ctl00_cphBody_txtPlanName",
+      "csd_field_type": "text",
+      "required": false,
+      "transform": null,
+      "notes": "Design plan name"
+    },
+    {
+      "jotform_field": "foundationType",
+      "jotform_label": "Foundation Type",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
+      "required": true,
+      "transform": "append_to_notes",
+      "options": ["Slab", "Basement", "Crawlspace"],
+      "notes": "No direct CSD field - will be added to special instructions/notes"
+    },
+    {
+      "jotform_field": "roofType",
+      "jotform_label": "Roof Type",
+      "csd_field": "rblRoofingFrame",
+      "csd_field_type": "radio",
+      "required": true,
+      "transform": "map_roof_type",
+      "value_mapping": {
+        "Stick Built": "Stick-built",
+        "Trussed by Others": "Trusses",
+        "Trussed by CBC": "Trusses"
+      },
+      "options": ["Stick Built", "Trussed by Others", "Trussed by CBC"],
+      "notes": "Maps to CSD roof framing radio buttons with value transformation"
+    },
+    {
+      "jotform_field": "jobNotes",
+      "jotform_label": "Job Notes",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
+      "required": false,
+      "transform": "append_to_notes",
+      "notes": "Combined into special instructions field"
+    },
+    {
+      "jotform_field": "isThis",
+      "jotform_label": "Is this a sold job?",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
+      "required": true,
+      "transform": "append_to_notes",
+      "options": ["YES", "NO"],
+      "notes": "No direct CSD field - will be added to notes as 'Sold Job: YES/NO'"
+    },
+    {
+      "jotform_field": "salesman",
+      "jotform_label": "Salesman",
+      "csd_field": "ctl00_cphBody_txtName",
+      "csd_field_type": "text",
+      "required": true,
+      "transform": null,
+      "notes": "Salesperson mapped to primary contact Name field"
+    },
+    {
+      "jotform_field": "maximumJoist",
+      "jotform_label": "Maximum Joist Spacing",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
+      "required": false,
+      "transform": "append_to_notes",
+      "notes": "Added to special instructions"
+    },
+    {
+      "jotform_field": "typeA",
+      "jotform_label": "Please select which market you need",
+      "csd_field": "ctl00_cphBody_txtDealerLocation",
+      "csd_field_type": "text",
+      "required": false,
+      "transform": null,
+      "options": ["Atlanta Market", "Statesville Market"],
+      "notes": "Market selection -> Dealer Location"
+    },
+    {
+      "jotform_field": "joistDepth",
+      "jotform_label": "Joist Depth Preference",
+      "csd_field": "JOIST_DEPTH_DYNAMIC",
+      "csd_field_type": "dynamic",
+      "required": false,
+      "transform": "map_to_joist_fields",
+      "options": ["Per Designer", "11 7/8\"", "14\"", "16\""],
+      "notes": "Maps to floor level joist depth fields (dynamic section)"
+    },
+    {
+      "jotform_field": "chooseAny",
+      "jotform_label": "Choose any that apply",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
+      "required": false,
+      "transform": "append_to_notes",
+      "options": [
+        "Sealed Engineered Layout",
+        "Permit Drawing",
+        "Follow Structurals",
+        "Floor by Others"
+      ],
+      "notes": "Multiple options combined into notes with labels"
+    },
+    {
+      "jotform_field": "ifRoof",
+      "jotform_label": "If roof is trussed by others...",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
+      "required": false,
+      "transform": "append_to_notes",
+      "notes": "Truss company name added to notes if applicable"
+    },
+    {
+      "jotform_field": "preferredManufacturer",
+      "jotform_label": "Preferred Manufacturer",
+      "csd_field": "rblHangerManufactuerer",
+      "csd_field_type": "radio",
+      "required": false,
+      "transform": "map_manufacturer",
+      "value_mapping": {
+        "Boise": "NOTES",
+        "Blue Linx": "NOTES",
+        "PWT": "NOTES",
+        "Trus Joist": "NOTES",
+        "Trimmable Open Web": "NOTES",
+        "Plated Floor Trusses": "NOTES"
+      },
+      "options": [
+        "Boise",
+        "Blue Linx",
+        "PWT",
+        "Trus Joist",
+        "Trimmable Open Web",
+        "Plated Floor Trusses"
+      ],
+      "notes": "Manufacturer preferences added to notes (CSD only has Simpson/USP for hangers)"
+    },
+    {
+      "jotform_field": "fireplaceConstruction",
+      "jotform_label": "Fireplace Construction",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
+      "required": false,
+      "transform": "append_to_notes",
+      "options": [
+        "Per Plan",
+        "Masonry",
+        "Full-Height Brick",
+        "Mantel-Height Brick",
+        "No Brick"
+      ],
+      "notes": "Fireplace details added to notes"
+    },
+    {
+      "jotform_field": "attachPlans",
+      "jotform_label": "Attach Plans",
+      "csd_field": "ctl00_cphBody_ajaxFileUploader",
+      "csd_field_type": "file",
+      "required": false,
+      "transform": "upload_file",
+      "notes": "File attachment - requires file download from JotForm then upload to CSD"
+    }
+  ],
+  "file_upload_fields": ["attachPlans"],
+  "conditional_fields": {
+    "ifRoof": {
+      "show_when": {
+        "roofType": "Trussed by Others"
+      }
+    }
+  },
+  "composite_notes_template": "=== SUBMISSION DETAILS ===\n{notes_content}\n\nSubmitted via automated system from JotForm"
+}

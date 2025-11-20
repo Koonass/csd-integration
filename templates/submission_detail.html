@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Details - CSD Portal Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .nav-link {
+            color: #2196F3;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: #e3f2fd;
+            font-size: 14px;
+        }
+        .nav-link:hover {
+            background: #bbdefb;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        .error-box {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Submission Details #{{ submission.id }}</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/submissions" class="nav-link">All Submissions</a>
+                <a href="/mapping" class="nav-link">Field Mapping</a>
+            </div>
+        </header>
+
+        <div class="card">
+            <h2>Submission Information</h2>
+            <div class="detail-grid">
+                <div class="detail-label">Submission ID:</div>
+                <div class="detail-value">{{ submission.id }}</div>
+
+                <div class="detail-label">JotForm ID:</div>
+                <div class="detail-value">{{ submission.jotform_submission_id }}</div>
+
+                <div class="detail-label">Submission Date:</div>
+                <div class="detail-value">{{ submission.submission_date }}</div>
+
+                <div class="detail-label">Builder Name:</div>
+                <div class="detail-value">{{ submission.builder_name or 'N/A' }}</div>
+
+                <div class="detail-label">Plan Name:</div>
+                <div class="detail-value">{{ submission.plan_name or 'N/A' }}</div>
+
+                <div class="detail-label">Submitter:</div>
+                <div class="detail-value">{{ submission.submitter_name or 'N/A' }}</div>
+
+                <div class="detail-label">Status:</div>
+                <div class="detail-value">
+                    <span class="status-badge status-{{ submission.csd_submission_status }}">
+                        {{ submission.csd_submission_status }}
+                    </span>
+                </div>
+
+                <div class="detail-label">CSD Submission Date:</div>
+                <div class="detail-value">{{ submission.csd_submission_date or 'Not submitted yet' }}</div>
+
+                <div class="detail-label">Confirmation Number:</div>
+                <div class="detail-value">{{ submission.csd_confirmation_number or 'N/A' }}</div>
+
+                <div class="detail-label">Retry Count:</div>
+                <div class="detail-value">{{ submission.retry_count }}</div>
+            </div>
+
+            {% if submission.error_message %}
+            <div class="error-box">
+                <strong>Error:</strong> {{ submission.error_message }}
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 20px;">
+                {% if submission.csd_submission_status == 'failed' %}
+                <button onclick="retrySubmission({{ submission.id }})" class="btn btn-warning">Retry Submission</button>
+                {% endif %}
+                <a href="/submissions" class="btn btn-primary">Back to All Submissions</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Raw Submission Data</h2>
+            <pre>{{ submission.raw_data }}</pre>
+        </div>
+    </div>
+
+    <script>
+        function retrySubmission(id) {
+            if (confirm('Retry this submission to CSD Portal?')) {
+                fetch('/retry/' + id, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Submission retried successfully!');
+                        location.reload();
+                    } else {
+                        alert('Retry failed: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

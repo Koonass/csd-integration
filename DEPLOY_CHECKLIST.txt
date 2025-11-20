@@ -1,0 +1,64 @@
+================================
+PythonAnywhere Deployment Checklist
+================================
+
+STEP 1: Upload Files
+□ Log into PythonAnywhere
+□ Go to Files tab
+□ Create directory: /home/YOURUSERNAME/csd-integration/
+□ Upload all files from this folder (or use git clone)
+
+STEP 2: Install Dependencies
+□ Open Bash console on PythonAnywhere
+□ Run: cd ~/csd-integration
+□ Run: python3.10 -m venv venv
+□ Run: source venv/bin/activate
+□ Run: pip install -r requirements.txt
+
+STEP 3: Configure Web App
+□ Go to Web tab
+□ Click "Add a new web app"
+□ Choose "Manual configuration"
+□ Choose "Python 3.10"
+
+STEP 4: Edit WSGI File
+□ Click WSGI configuration file link
+□ Delete all content
+□ Paste the WSGI code (see PYTHONANYWHERE_DEPLOYMENT.md)
+□ Replace "yourusername" with YOUR username
+□ Save file
+
+STEP 5: Set Paths in Web Tab
+□ Source code: /home/YOURUSERNAME/csd-integration
+□ Working directory: /home/YOURUSERNAME/csd-integration
+□ Virtualenv: /home/YOURUSERNAME/csd-integration/venv
+
+STEP 6: Reload Web App
+□ Click big green "Reload" button at top
+
+STEP 7: Test Deployment
+□ Visit: https://YOURUSERNAME.pythonanywhere.com
+□ Should see dashboard
+□ Test: https://YOURUSERNAME.pythonanywhere.com/health
+
+STEP 8: Update JotForm Webhook
+□ Go to JotForm form settings
+□ Settings → Integrations → Webhooks
+□ Set URL: https://YOURUSERNAME.pythonanywhere.com/csd-webhook
+□ Save
+□ Click "Test Webhook"
+
+STEP 9: Submit Real Form
+□ Submit your JotForm: https://form.jotform.com/240734091032042
+□ Check dashboard for submission
+□ Verify data looks correct
+
+================================
+DONE! Your webhook is live!
+================================
+
+Webhook URL for JotForm:
+https://YOURUSERNAME.pythonanywhere.com/csd-webhook
+
+Dashboard URL:
+https://YOURUSERNAME.pythonanywhere.com
