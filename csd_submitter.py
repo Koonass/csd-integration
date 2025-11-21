@@ -269,15 +269,14 @@ class CSDSubmitter:
                 elem.send_keys(csd_data['ctl00_cphBody_txtPlanName'])
                 logger.info(f"Filled Plan Name: {csd_data['ctl00_cphBody_txtPlanName']}")
 
-            # Salesman/Contact Name (optional - may not exist on form)
-            if 'ctl00_cphBody_txtName' in csd_data:
-                try:
-                    elem = driver.find_element(By.ID, "ctl00_cphBody_txtName")
-                    elem.clear()
-                    elem.send_keys(csd_data['ctl00_cphBody_txtName'])
-                    logger.info(f"Filled Contact Name: {csd_data['ctl00_cphBody_txtName']}")
-                except:
-                    logger.warning("Contact Name field not found on form - skipping")
+            # Submitted By Name (Salesman) - REQUIRED
+            if 'ctl00_cphBody_txtSubmittedBy' in csd_data:
+                elem = driver.find_element(By.ID, "ctl00_cphBody_txtSubmittedBy")
+                elem.clear()
+                elem.send_keys(csd_data['ctl00_cphBody_txtSubmittedBy'])
+                logger.info(f"Filled Submitted By Name: {csd_data['ctl00_cphBody_txtSubmittedBy']}")
+            else:
+                logger.warning("WARNING: Submitted By Name not provided - CSD Portal may reject submission!")
 
             # Due Date (optional)
             if 'ctl00_cphBody_txtDueDate' in csd_data:

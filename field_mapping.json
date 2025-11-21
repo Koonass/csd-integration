@@ -81,11 +81,11 @@
     {
       "jotform_field": "salesman",
       "jotform_label": "Salesman",
-      "csd_field": "ctl00_cphBody_txtName",
+      "csd_field": "ctl00_cphBody_txtSubmittedBy",
       "csd_field_type": "text",
       "required": true,
       "transform": null,
-      "notes": "Salesperson mapped to primary contact Name field"
+      "notes": "Salesperson mapped to 'Submitted By' Name field"
     },
     {
       "jotform_field": "maximumJoist",
