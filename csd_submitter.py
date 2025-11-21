@@ -323,9 +323,9 @@ class CSDSubmitter:
                 logger.warning(f"Could not save screenshot: {str(e)}")
 
             # Submit form
-            logger.info("Clicking submit button...")
-            submit_button = driver.find_element(By.ID, "btnSubmit")
-            submit_button.click()
+            # Note: Submit button is hidden, needs JavaScript click
+            logger.info("Clicking submit button via JavaScript...")
+            driver.execute_script("document.getElementById('btnSubmit').click();")
 
             # Wait for response (either success page or error)
             time.sleep(3)  # Give it time to process
