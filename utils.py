@@ -89,14 +89,20 @@ def parse_jotform_webhook(webhook_data: Dict[str, Any]) -> Optional[Dict[str, An
 
         # Method 1: Direct field access from webhook_data
         for key, value in webhook_data.items():
-            if key.startswith('q') and key[1:].isdigit():
-                # JotForm question format (q1, q2, etc.)
+            if key.startswith('q') and '_' in key:
+                # JotForm question format (q3_builderName, q5_planName, etc.)
+                # Strip the qXX_ prefix to get the field name
+                field_name = key.split('_', 1)[1] if '_' in key else key
+                fields[field_name] = value
+                # Also keep the original key with prefix
                 fields[key] = value
 
         # Method 2: From rawRequest
         if raw_request:
             for key, value in raw_request.items():
-                if key.startswith('q'):
+                if key.startswith('q') and '_' in key:
+                    field_name = key.split('_', 1)[1] if '_' in key else key
+                    fields[field_name] = value
                     fields[key] = value
 
         # Create standardized parsed data
