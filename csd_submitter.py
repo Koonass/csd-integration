@@ -236,6 +236,9 @@ class CSDSubmitter:
             driver = webdriver.Chrome(options=chrome_options)
             driver.set_page_load_timeout(30)
 
+            # Maximize window to capture full page in screenshots
+            driver.set_window_size(1920, 1080)
+
             # Open CSD Portal form
             logger.info(f"Opening CSD Portal: {self.csd_url}")
             driver.get(self.csd_url)
@@ -343,16 +346,30 @@ class CSDSubmitter:
             # Wait for response (either success page or error)
             time.sleep(3)  # Give it time to process
 
+            # Scroll to top to see any error messages
+            driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(1)
+
             # Check current URL for success redirect
             current_url = driver.current_url
             logger.info(f"After submit, URL: {current_url}")
 
-            # Take screenshot after submit
+            # Take screenshot after submit (at top of page)
             try:
                 driver.save_screenshot('logs/csd_after_submit.png')
                 logger.info("Saved screenshot after submit")
             except Exception as e:
                 logger.warning(f"Could not save screenshot: {str(e)}")
+
+            # Also check for validation error elements
+            try:
+                error_elements = driver.find_elements(By.XPATH, "//*[contains(@style, 'color:Red') or contains(@style, 'color: Red')]")
+                if error_elements:
+                    error_texts = [elem.text for elem in error_elements if elem.text.strip()]
+                    if error_texts:
+                        logger.error(f"CSD Portal validation errors found: {'; '.join(error_texts)}")
+            except Exception as e:
+                logger.debug(f"Could not check for error elements: {str(e)}")
 
             # Check page content for success/error messages
             page_source = driver.page_source
