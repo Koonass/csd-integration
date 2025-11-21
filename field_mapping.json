@@ -52,17 +52,12 @@
     {
       "jotform_field": "roofType",
       "jotform_label": "Roof Type",
-      "csd_field": "ctl00_cphBody_rblRoofingFrame",
-      "csd_field_type": "radio",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
       "required": true,
-      "transform": "map_roof_type",
-      "value_mapping": {
-        "Stick Built": "StickBuilt",
-        "Trussed by Others": "Trusses",
-        "Trussed by CBC": "Trusses"
-      },
+      "transform": "append_to_notes",
       "options": ["Stick Built", "Trussed by Others", "Trussed by CBC"],
-      "notes": "Maps to CSD roof framing radio buttons - values must match CSD exactly: StickBuilt, Trusses, Mixed"
+      "notes": "TEMPORARILY moved to notes to test if radio button causes event validation error"
     },
     {
       "jotform_field": "jobNotes",
