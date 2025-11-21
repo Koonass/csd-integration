@@ -269,19 +269,25 @@ class CSDSubmitter:
                 elem.send_keys(csd_data['ctl00_cphBody_txtPlanName'])
                 logger.info(f"Filled Plan Name: {csd_data['ctl00_cphBody_txtPlanName']}")
 
-            # Salesman/Contact Name
+            # Salesman/Contact Name (optional - may not exist on form)
             if 'ctl00_cphBody_txtName' in csd_data:
-                elem = driver.find_element(By.ID, "ctl00_cphBody_txtName")
-                elem.clear()
-                elem.send_keys(csd_data['ctl00_cphBody_txtName'])
-                logger.info(f"Filled Contact Name: {csd_data['ctl00_cphBody_txtName']}")
+                try:
+                    elem = driver.find_element(By.ID, "ctl00_cphBody_txtName")
+                    elem.clear()
+                    elem.send_keys(csd_data['ctl00_cphBody_txtName'])
+                    logger.info(f"Filled Contact Name: {csd_data['ctl00_cphBody_txtName']}")
+                except:
+                    logger.warning("Contact Name field not found on form - skipping")
 
-            # Due Date
+            # Due Date (optional)
             if 'ctl00_cphBody_txtDueDate' in csd_data:
-                elem = driver.find_element(By.ID, "ctl00_cphBody_txtDueDate")
-                elem.clear()
-                elem.send_keys(csd_data['ctl00_cphBody_txtDueDate'])
-                logger.info(f"Filled Due Date: {csd_data['ctl00_cphBody_txtDueDate']}")
+                try:
+                    elem = driver.find_element(By.ID, "ctl00_cphBody_txtDueDate")
+                    elem.clear()
+                    elem.send_keys(csd_data['ctl00_cphBody_txtDueDate'])
+                    logger.info(f"Filled Due Date: {csd_data['ctl00_cphBody_txtDueDate']}")
+                except:
+                    logger.warning("Due Date field not found or not fillable - skipping")
 
             # Province/State (required)
             if 'ctl00_cphBody_ddlProvince' in csd_data:
