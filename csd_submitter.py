@@ -308,7 +308,8 @@ class CSDSubmitter:
             # Special Instructions / Composite Notes
             if '_composite_notes' in csd_data:
                 notes_content = csd_data['_composite_notes']
-                elem = driver.find_element(By.ID, "ctl00_cphBody_txtProjectComments")
+                # Note: This textarea has shortened ID (not full ctl00_cphBody prefix)
+                elem = driver.find_element(By.ID, "txtProjectComments")
                 elem.clear()
                 elem.send_keys(notes_content)
                 logger.info(f"Filled Special Instructions ({len(notes_content)} chars)")
