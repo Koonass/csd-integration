@@ -1,0 +1,23 @@
+JotForm Field,JotForm Label,Sample Data,CSD Portal Field,CSD Field Type,Mapping Strategy,Value Transformation,Notes,Decision Needed
+builderName,Builder Name,textbox_sample0,ctl00_cphBody_txtBuilderName,text,Direct,None,Maps to Builder Name field,
+lotAnd,Lot and Subdivision,textbox_sample1,ctl00_cphBody_txtAddress,text,Direct,None,Currently mapped to Address field,Is this correct? Or should it go to a different field?
+planName,Plan Name,textbox_sample2,ctl00_cphBody_txtPlanName,text,Direct,None,Maps to Plan Name field,
+foundationType,Foundation Type,Slab,COMPOSITE_NOTES,composite,Add to Notes,None,No direct CSD field - goes to notes,Does CSD have a foundation field we should use instead?
+roofType,Roof Type,Stick Built,rblRoofingFrame,radio,Value Transform,"Stick Built→Stick-built, Trussed by Others→Trusses, Trussed by CBC→Trusses",Maps to roof framing radio buttons,Verify value mapping is correct
+jobNotes,Job Notes,Lorem ipsum...,COMPOSITE_NOTES,composite,Add to Notes,None,Special requirements go to notes,Correct approach?
+isThis,Is this a sold job?,YES,COMPOSITE_NOTES,composite,Add to Notes,None,No direct CSD field - goes to notes,Should we add this to JotForm Project Name or separate field?
+salesman,Salesman,RGodfrey@Contractlumber.com,ctl00_cphBody_txtName,text,Direct,None,Currently mapped to Contact Name,Is this correct? Or should salesman be in a different field?
+maximumJoist,Maximum Joist Spacing,24,COMPOSITE_NOTES,composite,Add to Notes,None,Goes to special instructions,Does CSD have a joist spacing field?
+typeA,Market Selection,Atlanta Market,ctl00_cphBody_txtDealerLocation,text,Direct,None,Mapped to Dealer Location,Is this the right field?
+joistDepth,Joist Depth Preference,Per Designer,JOIST_DEPTH_DYNAMIC,dynamic,Dynamic Field,None,Maps to floor level joist fields,Needs special handling - may need manual entry
+chooseAny,Additional Options,"[Sealed Engineered Layout]",COMPOSITE_NOTES,composite,Add to Notes,Array to comma-separated,Multiple selections combined,Should any of these have dedicated CSD fields?
+ifRoof,Truss Company Name,textbox_sample3,COMPOSITE_NOTES,composite,Add to Notes,Only if roofType=Trussed by Others,Conditional field,Where should this go in CSD?
+preferredManufacturer,Preferred Manufacturer,Boise,COMPOSITE_NOTES,composite,Add to Notes,None,CSD only has Simpson/USP for hangers,Should we add manufacturer preference somewhere else?
+fireplaceConstruction,Fireplace Construction,Per Plan,COMPOSITE_NOTES,composite,Add to Notes,None,Goes to special instructions,Does CSD have a fireplace field?
+attachPlans,Attach Plans,(file),ctl00_cphBody_ajaxFileUploader,file,File Upload,Download from JotForm then upload to CSD,Requires file handling,File upload may need testing - not yet implemented
+MISSING,Email Address,N/A,ctl00_cphBody_txtEmail,text,N/A,None,CSD accepts email but JotForm doesn't collect it,Should we add email field to JotForm?
+MISSING,Phone Number,N/A,ctl00_cphBody_txtPhone,text,N/A,Format: (XXX)-XXX-XXXX,CSD accepts phone but JotForm doesn't collect it,Should we add phone field to JotForm?
+MISSING,Project Name,N/A,ctl00_cphBody_txtProjectName,text,Auto-Generated,Builder + Plan Name,CSD REQUIRES this field - currently auto-generated,Should we add dedicated Project Name field to JotForm?
+MISSING,State/Province,N/A,ctl00_cphBody_ddlProvince,select,Default Value,Defaults to GA,CSD REQUIRES this field,Should we add state selection to JotForm? Or keep GA default?
+MISSING,City,N/A,ctl00_cphBody_txtCity,text,N/A,None,CSD accepts city,Add to JotForm?
+MISSING,Zip Code,N/A,ctl00_cphBody_txtZipCode,text,N/A,None,CSD accepts zip code,Add to JotForm?

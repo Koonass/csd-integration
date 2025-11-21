@@ -49,16 +49,24 @@ class CSDSubmitter:
         csd_data = {}
         composite_notes = []
 
+        submission_id = jotform_data.get('submission_id', 'unknown')
+
         for mapping in self.field_mapping.get('mappings', []):
             jotform_field = mapping['jotform_field']
             csd_field = mapping['csd_field']
             transform = mapping.get('transform')
             value_mapping = mapping.get('value_mapping', {})
+            skip_if_empty = mapping.get('skip_if_empty', False)
 
             # Get value from JotForm data
             jotform_value = jotform_data.get(jotform_field)
 
+            # Skip if no value
             if jotform_value is None:
+                continue
+
+            # Skip if empty and skip_if_empty is True
+            if skip_if_empty and self._is_empty_value(jotform_value):
                 continue
 
             # Handle different transformation types
@@ -66,10 +74,20 @@ class CSDSubmitter:
                 # Add to composite notes
                 label = mapping['jotform_label']
                 if isinstance(jotform_value, list):
-                    value_str = ', '.join(jotform_value)
+                    value_str = ', '.join(str(v) for v in jotform_value if v)
                 else:
                     value_str = str(jotform_value)
-                composite_notes.append(f"{label}: {value_str}")
+
+                if value_str.strip():  # Only add if not empty after conversion
+                    composite_notes.append(f"{label}: {value_str}")
+
+            elif transform == 'file_links_to_notes':
+                # Handle file URLs - add links to composite notes
+                file_links = self._extract_file_links(jotform_value)
+                if file_links:
+                    composite_notes.append(f"\n{mapping['jotform_label']}:")
+                    for idx, link in enumerate(file_links, 1):
+                        composite_notes.append(f"  File {idx}: {link}")
 
             elif transform == 'map_roof_type' and value_mapping:
                 # Transform value using mapping
@@ -100,9 +118,44 @@ class CSDSubmitter:
                 '=== SUBMISSION DETAILS ===\n{notes_content}'
             )
             notes_content = '\n'.join(composite_notes)
-            csd_data['_composite_notes'] = template.format(notes_content=notes_content)
+            csd_data['_composite_notes'] = template.format(
+                notes_content=notes_content,
+                submission_id=submission_id
+            )
 
         return csd_data
+
+    def _is_empty_value(self, value):
+        """Check if a value is considered empty"""
+        if value is None:
+            return True
+        if isinstance(value, str) and not value.strip():
+            return True
+        if isinstance(value, list) and len(value) == 0:
+            return True
+        return False
+
+    def _extract_file_links(self, file_value):
+        """Extract file URLs from JotForm file field"""
+        if not file_value:
+            return []
+
+        file_links = []
+
+        # JotForm can send file data in different formats
+        if isinstance(file_value, str):
+            # Single file URL
+            if file_value.startswith('http'):
+                file_links.append(file_value)
+        elif isinstance(file_value, list):
+            # Multiple files
+            for item in file_value:
+                if isinstance(item, str) and item.startswith('http'):
+                    file_links.append(item)
+                elif isinstance(item, dict) and 'url' in item:
+                    file_links.append(item['url'])
+
+        return file_links
 
     def _get_aspnet_form_state(self) -> Dict[str, str]:
         """
@@ -154,6 +207,15 @@ class CSDSubmitter:
 
             # Map JotForm fields to CSD fields
             csd_data = self._map_jotform_to_csd(jotform_data)
+
+            # Calculate due date if enabled
+            due_date_config = self.field_mapping.get('due_date_calculation', {})
+            if due_date_config.get('enabled', False):
+                from datetime import datetime, timedelta
+                days_to_add = due_date_config.get('days_from_submission', 14)
+                due_date = datetime.now() + timedelta(days=days_to_add)
+                csd_data['ctl00_cphBody_txtDueDate'] = due_date.strftime('%m/%d/%Y')
+                logger.info(f"Calculated due date: {csd_data['ctl00_cphBody_txtDueDate']}")
 
             # Get ASP.NET form state
             aspnet_state = self._get_aspnet_form_state()

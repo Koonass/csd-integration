@@ -1,10 +1,15 @@
 {
-  "version": "1.0",
-  "last_updated": "2025-11-14",
-  "notes": "Field mapping from JotForm to CSD Portal. Update this file to modify mappings.",
+  "version": "2.0",
+  "last_updated": "2025-11-20",
+  "notes": "Field mapping from JotForm to CSD Portal - Customized for CBC workflow.",
   "csd_required_fields": {
-    "ctl00_cphBody_txtProjectName": "Project Name (REQUIRED by CSD)",
-    "ctl00_cphBody_ddlProvince": "Province/State (REQUIRED by CSD)"
+    "ctl00_cphBody_txtProjectName": "Project Name (from lotAnd)",
+    "ctl00_cphBody_ddlProvince": "Province/State (defaults to GA)"
+  },
+  "due_date_calculation": {
+    "enabled": true,
+    "days_from_submission": 14,
+    "notes": "Auto-calculate due date as submission date + 14 days"
   },
   "mappings": [
     {
@@ -19,11 +24,11 @@
     {
       "jotform_field": "lotAnd",
       "jotform_label": "Lot and Subdivision",
-      "csd_field": "ctl00_cphBody_txtAddress",
+      "csd_field": "ctl00_cphBody_txtProjectName",
       "csd_field_type": "text",
-      "required": false,
+      "required": true,
       "transform": null,
-      "notes": "Lot and subdivision -> Address field"
+      "notes": "Lot and subdivision -> Project Name (CSD REQUIRED field)"
     },
     {
       "jotform_field": "planName",
@@ -98,13 +103,14 @@
     },
     {
       "jotform_field": "typeA",
-      "jotform_label": "Please select which market you need",
-      "csd_field": "ctl00_cphBody_txtDealerLocation",
-      "csd_field_type": "text",
+      "jotform_label": "Market",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
       "required": false,
-      "transform": null,
+      "transform": "append_to_notes",
+      "skip_if_empty": false,
       "options": ["Atlanta Market", "Statesville Market"],
-      "notes": "Market selection -> Dealer Location"
+      "notes": "Market selection goes to special instructions"
     },
     {
       "jotform_field": "joistDepth",
@@ -118,27 +124,29 @@
     },
     {
       "jotform_field": "chooseAny",
-      "jotform_label": "Choose any that apply",
+      "jotform_label": "Additional Options",
       "csd_field": "COMPOSITE_NOTES",
       "csd_field_type": "composite",
       "required": false,
       "transform": "append_to_notes",
+      "skip_if_empty": true,
       "options": [
         "Sealed Engineered Layout",
         "Permit Drawing",
         "Follow Structurals",
         "Floor by Others"
       ],
-      "notes": "Multiple options combined into notes with labels"
+      "notes": "Multiple options - only add to notes if selected"
     },
     {
       "jotform_field": "ifRoof",
-      "jotform_label": "If roof is trussed by others...",
+      "jotform_label": "Truss Company",
       "csd_field": "COMPOSITE_NOTES",
       "csd_field_type": "composite",
       "required": false,
       "transform": "append_to_notes",
-      "notes": "Truss company name added to notes if applicable"
+      "skip_if_empty": true,
+      "notes": "Truss company name - only add to notes if provided"
     },
     {
       "jotform_field": "preferredManufacturer",
@@ -172,6 +180,7 @@
       "csd_field_type": "composite",
       "required": false,
       "transform": "append_to_notes",
+      "skip_if_empty": true,
       "options": [
         "Per Plan",
         "Masonry",
@@ -179,19 +188,19 @@
         "Mantel-Height Brick",
         "No Brick"
       ],
-      "notes": "Fireplace details added to notes"
+      "notes": "Fireplace details - only add to notes if selected"
     },
     {
       "jotform_field": "attachPlans",
-      "jotform_label": "Attach Plans",
-      "csd_field": "ctl00_cphBody_ajaxFileUploader",
-      "csd_field_type": "file",
+      "jotform_label": "Attached Plans",
+      "csd_field": "COMPOSITE_NOTES",
+      "csd_field_type": "composite",
       "required": false,
-      "transform": "upload_file",
-      "notes": "File attachment - requires file download from JotForm then upload to CSD"
+      "transform": "file_links_to_notes",
+      "skip_if_empty": true,
+      "notes": "File URLs added to notes - files stored in JotForm, links provided for access"
     }
   ],
-  "file_upload_fields": ["attachPlans"],
   "conditional_fields": {
     "ifRoof": {
       "show_when": {
@@ -199,5 +208,5 @@
       }
     }
   },
-  "composite_notes_template": "=== SUBMISSION DETAILS ===\n{notes_content}\n\nSubmitted via automated system from JotForm"
+  "composite_notes_template": "=== Design Request Details ===\n\n{notes_content}\n\n---\nSubmitted via automated integration from JotForm\nJotForm Submission ID: {submission_id}"
 }
