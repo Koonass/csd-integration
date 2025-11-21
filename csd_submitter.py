@@ -228,15 +228,12 @@ class CSDSubmitter:
                 if not field.startswith('_'):  # Skip internal fields
                     form_data[field] = value
 
-            # Add composite notes to appropriate field
-            # Based on CSD Portal form inspection, notes go in a specific field
-            # If we don't have the exact field name yet, log it prominently
+            # Add composite notes to Special Instructions field
             if '_composite_notes' in csd_data:
                 notes_content = csd_data['_composite_notes']
-                # TODO: Replace with actual CSD notes field name once confirmed
-                # Possible field names: txtNotes, txtComments, txtSpecialInstructions
-                form_data['NOTES_FIELD_PLACEHOLDER'] = notes_content
-                logger.warning(f"IMPORTANT: Composite notes need proper field mapping!")
+                # Confirmed field name from CSD Portal form inspection
+                form_data['ctl00$cphBody$txtProjectComments'] = notes_content
+                logger.info(f"Added composite notes to Special Instructions field")
                 logger.info(f"Composite notes content:\n{notes_content}")
 
             # Handle required CSD fields
@@ -251,6 +248,9 @@ class CSDSubmitter:
             if 'ctl00_cphBody_ddlProvince' not in form_data:
                 # Default to GA (Georgia) for Atlanta market
                 form_data['ctl00_cphBody_ddlProvince'] = 'GA'
+
+            # Add submit button (required for ASP.NET form submission)
+            form_data['ctl00$cphBody$btnSubmit'] = ''
 
             logger.info(f"Form data prepared: {len(form_data)} fields")
             logger.info(f"Submitting to CSD Portal: {self.csd_url}")
