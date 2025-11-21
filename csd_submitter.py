@@ -282,9 +282,14 @@ class CSDSubmitter:
 
             response.raise_for_status()
 
-            # Save response for debugging
-            response_preview = response.text[:500] if len(response.text) > 500 else response.text
-            logger.debug(f"Response preview: {response_preview}")
+            # Save full response for debugging validation errors
+            try:
+                Path('logs').mkdir(exist_ok=True)
+                with open('logs/csd_last_response.html', 'w', encoding='utf-8') as f:
+                    f.write(response.text)
+                logger.info("Saved full response to logs/csd_last_response.html")
+            except Exception as e:
+                logger.warning(f"Could not save response HTML: {str(e)}")
 
             # Check for success indicators in response
             # This will depend on how CSD Portal indicates success
@@ -360,13 +365,34 @@ class CSDSubmitter:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(html, 'html.parser')
 
-            # Look for common error indicators
-            error_elements = soup.find_all(class_=['error', 'alert', 'validation-summary'])
-            if error_elements:
-                return error_elements[0].get_text(strip=True)
+            # Look for ASP.NET validation messages
+            errors = []
+
+            # Check for validation summary
+            validation_summary = soup.find(class_='validation-summary-errors')
+            if validation_summary:
+                errors.append(validation_summary.get_text(strip=True))
+
+            # Check for field-level validators
+            validators = soup.find_all('span', {'style': lambda x: x and 'color:Red' in x})
+            for validator in validators:
+                text = validator.get_text(strip=True)
+                if text:
+                    errors.append(text)
+
+            # Check for any elements with "required" text
+            if not errors and 'required' in html.lower():
+                # Try to find specific required field messages
+                required_spans = soup.find_all('span', string=lambda x: x and 'required' in x.lower())
+                for span in required_spans[:3]:  # Limit to first 3
+                    errors.append(span.get_text(strip=True))
+
+            if errors:
+                return '; '.join(errors[:5])  # Return first 5 errors
 
             return None
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error parsing validation errors: {str(e)}")
             return None
 
     def test_connection(self) -> bool:
