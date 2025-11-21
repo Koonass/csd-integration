@@ -4,7 +4,7 @@
   "notes": "Field mapping from JotForm to CSD Portal - Customized for CBC workflow.",
   "csd_required_fields": {
     "ctl00_cphBody_txtProjectName": "Project Name (from lotAnd)",
-    "ctl00_cphBody_ddlProvince": "Province/State (defaults to GA)"
+    "ctl00_cphBody_ddlProvince": "Province/State (defaults to 24=Georgia)"
   },
   "due_date_calculation": {
     "enabled": true,

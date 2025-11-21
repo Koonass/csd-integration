@@ -290,18 +290,20 @@ class CSDSubmitter:
                     logger.warning("Due Date field not found or not fillable - skipping")
 
             # Province/State (required)
+            # Note: CSD Portal uses numeric IDs for states, not abbreviations
+            # Georgia = 24, North Carolina = 38, etc.
             from selenium.webdriver.support.ui import Select
+            elem = driver.find_element(By.ID, "ctl00_cphBody_ddlProvince")
+            select = Select(elem)
+
             if 'ctl00_cphBody_ddlProvince' in csd_data:
-                elem = driver.find_element(By.ID, "ctl00_cphBody_ddlProvince")
-                select = Select(elem)
-                select.select_by_value(csd_data['ctl00_cphBody_ddlProvince'])
-                logger.info(f"Selected Province: {csd_data['ctl00_cphBody_ddlProvince']}")
+                province_value = csd_data['ctl00_cphBody_ddlProvince']
+                select.select_by_value(province_value)
+                logger.info(f"Selected Province: {province_value}")
             else:
-                # Default to GA
-                elem = driver.find_element(By.ID, "ctl00_cphBody_ddlProvince")
-                select = Select(elem)
-                select.select_by_value('GA')
-                logger.info("Selected Province: GA (default)")
+                # Default to Georgia (ID: 24) for Atlanta market
+                select.select_by_value('24')
+                logger.info("Selected Province: Georgia (24) - default")
 
             # Special Instructions / Composite Notes
             if '_composite_notes' in csd_data:
