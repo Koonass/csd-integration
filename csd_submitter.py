@@ -229,11 +229,15 @@ class CSDSubmitter:
                     form_data[field] = value
 
             # Add composite notes to appropriate field
-            # TODO: Determine which field on CSD form is for special instructions
+            # Based on CSD Portal form inspection, notes go in a specific field
+            # If we don't have the exact field name yet, log it prominently
             if '_composite_notes' in csd_data:
-                # This needs to be mapped to the correct notes field in CSD Portal
-                # For now, we'll log it
-                logger.info(f"Composite notes: {csd_data['_composite_notes']}")
+                notes_content = csd_data['_composite_notes']
+                # TODO: Replace with actual CSD notes field name once confirmed
+                # Possible field names: txtNotes, txtComments, txtSpecialInstructions
+                form_data['NOTES_FIELD_PLACEHOLDER'] = notes_content
+                logger.warning(f"IMPORTANT: Composite notes need proper field mapping!")
+                logger.info(f"Composite notes content:\n{notes_content}")
 
             # Handle required CSD fields
             # Project Name is required by CSD
@@ -248,9 +252,18 @@ class CSDSubmitter:
                 # Default to GA (Georgia) for Atlanta market
                 form_data['ctl00_cphBody_ddlProvince'] = 'GA'
 
-            logger.debug(f"Form data prepared: {len(form_data)} fields")
+            logger.info(f"Form data prepared: {len(form_data)} fields")
+            logger.info(f"Submitting to CSD Portal: {self.csd_url}")
+
+            # Log key fields being sent (for debugging)
+            key_fields = ['ctl00_cphBody_txtProjectName', 'ctl00_cphBody_txtBuilderName',
+                         'ctl00_cphBody_txtPlanName', 'ctl00_cphBody_ddlProvince']
+            for field in key_fields:
+                if field in form_data:
+                    logger.info(f"  {field}: {form_data[field]}")
 
             # Submit form
+            logger.info("Sending POST request to CSD Portal...")
             response = self.session.post(
                 self.csd_url,
                 data=form_data,
@@ -258,18 +271,26 @@ class CSDSubmitter:
                 allow_redirects=True
             )
 
+            logger.info(f"CSD Portal response status: {response.status_code}")
+            logger.info(f"Final URL after redirects: {response.url}")
+
             response.raise_for_status()
+
+            # Save response for debugging
+            response_preview = response.text[:500] if len(response.text) > 500 else response.text
+            logger.debug(f"Response preview: {response_preview}")
 
             # Check for success indicators in response
             # This will depend on how CSD Portal indicates success
-            if 'thank you' in response.text.lower() or 'success' in response.text.lower():
-                logger.info("CSD Portal submission successful")
+            response_lower = response.text.lower()
+            if 'thank you' in response_lower or 'success' in response_lower or 'submitted' in response_lower:
+                logger.info("CSD Portal submission appears successful")
                 return {
                     'success': True,
                     'confirmation_number': self._extract_confirmation_number(response.text)
                 }
             else:
-                # Check for error messages
+                # Check for error messages or validation issues
                 error_msg = self._extract_error_message(response.text)
                 if error_msg:
                     logger.error(f"CSD Portal returned error: {error_msg}")
@@ -278,7 +299,15 @@ class CSDSubmitter:
                         'error': error_msg
                     }
                 else:
-                    logger.warning("CSD Portal response unclear - may need manual verification")
+                    # No clear success or error - log response for investigation
+                    logger.warning("CSD Portal response unclear - manual verification needed")
+                    logger.warning(f"Response text length: {len(response.text)} characters")
+                    if 'error' in response_lower or 'invalid' in response_lower or 'required' in response_lower:
+                        logger.error("Response may contain error - check CSD Portal manually")
+                        return {
+                            'success': False,
+                            'error': 'Possible validation error - check logs and CSD Portal'
+                        }
                     return {
                         'success': True,
                         'confirmation_number': 'VERIFY_MANUALLY'
