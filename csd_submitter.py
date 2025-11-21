@@ -223,10 +223,12 @@ class CSDSubmitter:
             # Build form data
             form_data = {**aspnet_state}
 
-            # Add mapped data
+            # Add mapped data (convert underscores to dollar signs for ASP.NET)
             for field, value in csd_data.items():
                 if not field.startswith('_'):  # Skip internal fields
-                    form_data[field] = value
+                    # ASP.NET uses $ as separator, but we use _ in our mapping for easier JSON handling
+                    aspnet_field = field.replace('_', '$')
+                    form_data[aspnet_field] = value
 
             # Add composite notes to Special Instructions field
             if '_composite_notes' in csd_data:
@@ -238,16 +240,16 @@ class CSDSubmitter:
 
             # Handle required CSD fields
             # Project Name is required by CSD
-            if 'ctl00_cphBody_txtProjectName' not in form_data:
+            if 'ctl00$cphBody$txtProjectName' not in form_data:
                 # Try to construct from available data
-                builder = form_data.get('ctl00_cphBody_txtBuilderName', 'Unknown')
-                plan = form_data.get('ctl00_cphBody_txtPlanName', 'Project')
-                form_data['ctl00_cphBody_txtProjectName'] = f"{builder} - {plan}"
+                builder = form_data.get('ctl00$cphBody$txtBuilderName', 'Unknown')
+                plan = form_data.get('ctl00$cphBody$txtPlanName', 'Project')
+                form_data['ctl00$cphBody$txtProjectName'] = f"{builder} - {plan}"
 
             # Province is required
-            if 'ctl00_cphBody_ddlProvince' not in form_data:
+            if 'ctl00$cphBody$ddlProvince' not in form_data:
                 # Default to GA (Georgia) for Atlanta market
-                form_data['ctl00_cphBody_ddlProvince'] = 'GA'
+                form_data['ctl00$cphBody$ddlProvince'] = 'GA'
 
             # Add submit button (required for ASP.NET form submission)
             form_data['ctl00$cphBody$btnSubmit'] = ''
@@ -255,9 +257,13 @@ class CSDSubmitter:
             logger.info(f"Form data prepared: {len(form_data)} fields")
             logger.info(f"Submitting to CSD Portal: {self.csd_url}")
 
+            # Log all field names being sent (for debugging field name format)
+            logger.info(f"All form fields: {', '.join(form_data.keys())}")
+
             # Log key fields being sent (for debugging)
-            key_fields = ['ctl00_cphBody_txtProjectName', 'ctl00_cphBody_txtBuilderName',
-                         'ctl00_cphBody_txtPlanName', 'ctl00_cphBody_ddlProvince']
+            key_fields = ['ctl00$cphBody$txtProjectName', 'ctl00$cphBody$txtBuilderName',
+                         'ctl00$cphBody$txtPlanName', 'ctl00$cphBody$ddlProvince',
+                         'ctl00$cphBody$txtProjectComments']
             for field in key_fields:
                 if field in form_data:
                     logger.info(f"  {field}: {form_data[field]}")
