@@ -281,16 +281,15 @@ class CSDSubmitter:
             else:
                 logger.warning("WARNING: Submitted By Name not provided - CSD Portal may reject submission!")
 
-            # Submitted By Phone - REQUIRED (with formatting for masked input)
+            # Submitted By Phone - REQUIRED (use JavaScript for masked input)
             phone_raw = csd_data.get('ctl00_cphBody_txtPhone', '6788282117')
             # Format as (XXX) XXX-XXXX for masked input field
             if len(phone_raw) == 10 and phone_raw.isdigit():
                 phone_value = f"({phone_raw[:3]}) {phone_raw[3:6]}-{phone_raw[6:]}"
             else:
                 phone_value = phone_raw
-            elem = driver.find_element(By.ID, "ctl00_cphBody_txtPhone")
-            elem.clear()
-            elem.send_keys(phone_value)
+            # Use JavaScript to set value (works better with masked inputs)
+            driver.execute_script(f"document.getElementById('ctl00_cphBody_txtPhone').value = '{phone_value}';")
             logger.info(f"Filled Submitted By Phone: {phone_value}")
 
             # Submitted By Email - REQUIRED
