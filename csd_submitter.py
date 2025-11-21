@@ -242,7 +242,7 @@ class CSDSubmitter:
 
             # Wait for form to load
             wait = WebDriverWait(driver, 10)
-            wait.until(EC.presence_of_element_located((By.ID, "txtProjectName")))
+            wait.until(EC.presence_of_element_located((By.ID, "ctl00_cphBody_txtProjectName")))
             logger.info("Form loaded successfully")
 
             # Fill text fields
@@ -300,7 +300,7 @@ class CSDSubmitter:
             # Special Instructions / Composite Notes
             if '_composite_notes' in csd_data:
                 notes_content = csd_data['_composite_notes']
-                elem = driver.find_element(By.ID, "txtProjectComments")
+                elem = driver.find_element(By.ID, "ctl00_cphBody_txtProjectComments")
                 elem.clear()
                 elem.send_keys(notes_content)
                 logger.info(f"Filled Special Instructions ({len(notes_content)} chars)")
