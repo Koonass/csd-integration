@@ -88,6 +88,26 @@
       "notes": "Salesperson mapped to 'Submitted By' Name field"
     },
     {
+      "jotform_field": "salesmanPhone",
+      "jotform_label": "Salesman Phone",
+      "csd_field": "ctl00_cphBody_txtPhone",
+      "csd_field_type": "tel",
+      "required": false,
+      "transform": null,
+      "default_value": "6788282117",
+      "notes": "Submitted By Phone - uses default if not provided by JotForm"
+    },
+    {
+      "jotform_field": "salesmanEmail",
+      "jotform_label": "Salesman Email",
+      "csd_field": "ctl00_cphBody_txtEmail",
+      "csd_field_type": "email",
+      "required": false,
+      "transform": null,
+      "default_value": "FBDesign@contractlumber.com",
+      "notes": "Submitted By Email - uses default if not provided by JotForm"
+    },
+    {
       "jotform_field": "maximumJoist",
       "jotform_label": "Maximum Joist Spacing",
       "csd_field": "COMPOSITE_NOTES",

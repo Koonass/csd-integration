@@ -278,6 +278,20 @@ class CSDSubmitter:
             else:
                 logger.warning("WARNING: Submitted By Name not provided - CSD Portal may reject submission!")
 
+            # Submitted By Phone - REQUIRED
+            phone_value = csd_data.get('ctl00_cphBody_txtPhone', '6788282117')
+            elem = driver.find_element(By.ID, "ctl00_cphBody_txtPhone")
+            elem.clear()
+            elem.send_keys(phone_value)
+            logger.info(f"Filled Submitted By Phone: {phone_value}")
+
+            # Submitted By Email - REQUIRED
+            email_value = csd_data.get('ctl00_cphBody_txtEmail', 'FBDesign@contractlumber.com')
+            elem = driver.find_element(By.ID, "ctl00_cphBody_txtEmail")
+            elem.clear()
+            elem.send_keys(email_value)
+            logger.info(f"Filled Submitted By Email: {email_value}")
+
             # Due Date (optional)
             if 'ctl00_cphBody_txtDueDate' in csd_data:
                 try:
