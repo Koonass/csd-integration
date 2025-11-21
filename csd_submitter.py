@@ -290,8 +290,8 @@ class CSDSubmitter:
                     logger.warning("Due Date field not found or not fillable - skipping")
 
             # Province/State (required)
+            from selenium.webdriver.support.ui import Select
             if 'ctl00_cphBody_ddlProvince' in csd_data:
-                from selenium.webdriver.support.ui import Select
                 elem = driver.find_element(By.ID, "ctl00_cphBody_ddlProvince")
                 select = Select(elem)
                 select.select_by_value(csd_data['ctl00_cphBody_ddlProvince'])
