@@ -189,7 +189,7 @@ class CSDSubmitter:
 
     def submit_to_csd(self, jotform_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Submit data to CSD Portal
+        Submit data to CSD Portal using Selenium browser automation
 
         Args:
             jotform_data: Raw JotForm submission data
@@ -202,8 +202,16 @@ class CSDSubmitter:
                 'error': str (if failed)
             }
         """
+        from selenium import webdriver
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.chrome.options import Options
+        from selenium.common.exceptions import TimeoutException, WebDriverException
+
+        driver = None
         try:
-            logger.info("Starting CSD Portal submission")
+            logger.info("Starting CSD Portal submission with Selenium")
 
             # Map JotForm fields to CSD fields
             csd_data = self._map_jotform_to_csd(jotform_data)
@@ -217,118 +225,148 @@ class CSDSubmitter:
                 csd_data['ctl00_cphBody_txtDueDate'] = due_date.strftime('%m/%d/%Y')
                 logger.info(f"Calculated due date: {csd_data['ctl00_cphBody_txtDueDate']}")
 
-            # Get ASP.NET form state
-            aspnet_state = self._get_aspnet_form_state()
+            # Configure Chrome for headless operation
+            chrome_options = Options()
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument('--disable-gpu')
 
-            # Build form data
-            form_data = {**aspnet_state}
+            logger.info("Launching headless Chrome browser")
+            driver = webdriver.Chrome(options=chrome_options)
+            driver.set_page_load_timeout(30)
 
-            # Add mapped data (convert underscores to dollar signs for ASP.NET)
-            for field, value in csd_data.items():
-                if not field.startswith('_'):  # Skip internal fields
-                    # ASP.NET uses $ as separator, but we use _ in our mapping for easier JSON handling
-                    aspnet_field = field.replace('_', '$')
-                    form_data[aspnet_field] = value
+            # Open CSD Portal form
+            logger.info(f"Opening CSD Portal: {self.csd_url}")
+            driver.get(self.csd_url)
 
-            # Add composite notes to Special Instructions field
+            # Wait for form to load
+            wait = WebDriverWait(driver, 10)
+            wait.until(EC.presence_of_element_located((By.ID, "txtProjectName")))
+            logger.info("Form loaded successfully")
+
+            # Fill text fields
+            logger.info("Filling form fields...")
+
+            # Builder Name
+            if 'ctl00_cphBody_txtBuilderName' in csd_data:
+                elem = driver.find_element(By.ID, "ctl00_cphBody_txtBuilderName")
+                elem.clear()
+                elem.send_keys(csd_data['ctl00_cphBody_txtBuilderName'])
+                logger.info(f"Filled Builder Name: {csd_data['ctl00_cphBody_txtBuilderName']}")
+
+            # Project Name (required)
+            if 'ctl00_cphBody_txtProjectName' in csd_data:
+                elem = driver.find_element(By.ID, "ctl00_cphBody_txtProjectName")
+                elem.clear()
+                elem.send_keys(csd_data['ctl00_cphBody_txtProjectName'])
+                logger.info(f"Filled Project Name: {csd_data['ctl00_cphBody_txtProjectName']}")
+
+            # Plan Name
+            if 'ctl00_cphBody_txtPlanName' in csd_data:
+                elem = driver.find_element(By.ID, "ctl00_cphBody_txtPlanName")
+                elem.clear()
+                elem.send_keys(csd_data['ctl00_cphBody_txtPlanName'])
+                logger.info(f"Filled Plan Name: {csd_data['ctl00_cphBody_txtPlanName']}")
+
+            # Salesman/Contact Name
+            if 'ctl00_cphBody_txtName' in csd_data:
+                elem = driver.find_element(By.ID, "ctl00_cphBody_txtName")
+                elem.clear()
+                elem.send_keys(csd_data['ctl00_cphBody_txtName'])
+                logger.info(f"Filled Contact Name: {csd_data['ctl00_cphBody_txtName']}")
+
+            # Due Date
+            if 'ctl00_cphBody_txtDueDate' in csd_data:
+                elem = driver.find_element(By.ID, "ctl00_cphBody_txtDueDate")
+                elem.clear()
+                elem.send_keys(csd_data['ctl00_cphBody_txtDueDate'])
+                logger.info(f"Filled Due Date: {csd_data['ctl00_cphBody_txtDueDate']}")
+
+            # Province/State (required)
+            if 'ctl00_cphBody_ddlProvince' in csd_data:
+                from selenium.webdriver.support.ui import Select
+                elem = driver.find_element(By.ID, "ctl00_cphBody_ddlProvince")
+                select = Select(elem)
+                select.select_by_value(csd_data['ctl00_cphBody_ddlProvince'])
+                logger.info(f"Selected Province: {csd_data['ctl00_cphBody_ddlProvince']}")
+            else:
+                # Default to GA
+                elem = driver.find_element(By.ID, "ctl00_cphBody_ddlProvince")
+                select = Select(elem)
+                select.select_by_value('GA')
+                logger.info("Selected Province: GA (default)")
+
+            # Special Instructions / Composite Notes
             if '_composite_notes' in csd_data:
                 notes_content = csd_data['_composite_notes']
-                # Confirmed field name from CSD Portal form inspection
-                form_data['ctl00$cphBody$txtProjectComments'] = notes_content
-                logger.info(f"Added composite notes to Special Instructions field")
-                logger.info(f"Composite notes content:\n{notes_content}")
+                elem = driver.find_element(By.ID, "txtProjectComments")
+                elem.clear()
+                elem.send_keys(notes_content)
+                logger.info(f"Filled Special Instructions ({len(notes_content)} chars)")
 
-            # Handle required CSD fields
-            # Project Name is required by CSD
-            if 'ctl00$cphBody$txtProjectName' not in form_data:
-                # Try to construct from available data
-                builder = form_data.get('ctl00$cphBody$txtBuilderName', 'Unknown')
-                plan = form_data.get('ctl00$cphBody$txtPlanName', 'Project')
-                form_data['ctl00$cphBody$txtProjectName'] = f"{builder} - {plan}"
-
-            # Province is required
-            if 'ctl00$cphBody$ddlProvince' not in form_data:
-                # Default to GA (Georgia) for Atlanta market
-                form_data['ctl00$cphBody$ddlProvince'] = 'GA'
-
-            # Add submit button (required for ASP.NET form submission)
-            form_data['ctl00$cphBody$btnSubmit'] = ''
-
-            logger.info(f"Form data prepared: {len(form_data)} fields")
-            logger.info(f"Submitting to CSD Portal: {self.csd_url}")
-
-            # Log all field names being sent (for debugging field name format)
-            logger.info(f"All form fields: {', '.join(form_data.keys())}")
-
-            # Log key fields being sent (for debugging)
-            key_fields = ['ctl00$cphBody$txtProjectName', 'ctl00$cphBody$txtBuilderName',
-                         'ctl00$cphBody$txtPlanName', 'ctl00$cphBody$ddlProvince',
-                         'ctl00$cphBody$txtProjectComments']
-            for field in key_fields:
-                if field in form_data:
-                    logger.info(f"  {field}: {form_data[field]}")
-
-            # Submit form
-            logger.info("Sending POST request to CSD Portal...")
-            response = self.session.post(
-                self.csd_url,
-                data=form_data,
-                timeout=self.timeout,
-                allow_redirects=True
-            )
-
-            logger.info(f"CSD Portal response status: {response.status_code}")
-            logger.info(f"Final URL after redirects: {response.url}")
-
-            response.raise_for_status()
-
-            # Save full response for debugging validation errors
+            # Take screenshot before submit (for debugging)
             try:
                 Path('logs').mkdir(exist_ok=True)
-                with open('logs/csd_last_response.html', 'w', encoding='utf-8') as f:
-                    f.write(response.text)
-                logger.info("Saved full response to logs/csd_last_response.html")
+                driver.save_screenshot('logs/csd_before_submit.png')
+                logger.info("Saved screenshot before submit")
             except Exception as e:
-                logger.warning(f"Could not save response HTML: {str(e)}")
+                logger.warning(f"Could not save screenshot: {str(e)}")
 
-            # Check for success indicators in response
-            # This will depend on how CSD Portal indicates success
-            response_lower = response.text.lower()
-            if 'thank you' in response_lower or 'success' in response_lower or 'submitted' in response_lower:
-                logger.info("CSD Portal submission appears successful")
+            # Submit form
+            logger.info("Clicking submit button...")
+            submit_button = driver.find_element(By.ID, "btnSubmit")
+            submit_button.click()
+
+            # Wait for response (either success page or error)
+            time.sleep(3)  # Give it time to process
+
+            # Check current URL for success redirect
+            current_url = driver.current_url
+            logger.info(f"After submit, URL: {current_url}")
+
+            # Take screenshot after submit
+            try:
+                driver.save_screenshot('logs/csd_after_submit.png')
+                logger.info("Saved screenshot after submit")
+            except Exception as e:
+                logger.warning(f"Could not save screenshot: {str(e)}")
+
+            # Check page content for success/error messages
+            page_source = driver.page_source
+            page_lower = page_source.lower()
+
+            if 'thank you' in page_lower or 'success' in page_lower or 'submitted' in page_lower:
+                logger.info("CSD Portal submission appears successful!")
                 return {
                     'success': True,
-                    'confirmation_number': self._extract_confirmation_number(response.text)
+                    'confirmation_number': self._extract_confirmation_number(page_source)
+                }
+            elif 'error' in page_lower or 'invalid' in page_lower or 'required' in page_lower:
+                error_msg = self._extract_error_message(page_source)
+                logger.error(f"CSD Portal returned error: {error_msg}")
+                return {
+                    'success': False,
+                    'error': error_msg or 'Validation error - check screenshots'
                 }
             else:
-                # Check for error messages or validation issues
-                error_msg = self._extract_error_message(response.text)
-                if error_msg:
-                    logger.error(f"CSD Portal returned error: {error_msg}")
-                    return {
-                        'success': False,
-                        'error': error_msg
-                    }
-                else:
-                    # No clear success or error - log response for investigation
-                    logger.warning("CSD Portal response unclear - manual verification needed")
-                    logger.warning(f"Response text length: {len(response.text)} characters")
-                    if 'error' in response_lower or 'invalid' in response_lower or 'required' in response_lower:
-                        logger.error("Response may contain error - check CSD Portal manually")
-                        return {
-                            'success': False,
-                            'error': 'Possible validation error - check logs and CSD Portal'
-                        }
-                    return {
-                        'success': True,
-                        'confirmation_number': 'VERIFY_MANUALLY'
-                    }
+                logger.warning("CSD Portal response unclear - check screenshots")
+                return {
+                    'success': True,
+                    'confirmation_number': 'VERIFY_MANUALLY - check screenshots'
+                }
 
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Network error submitting to CSD Portal: {str(e)}")
+        except TimeoutException as e:
+            logger.error(f"Timeout waiting for CSD Portal: {str(e)}")
             return {
                 'success': False,
-                'error': f"Network error: {str(e)}"
+                'error': f"Timeout: {str(e)}"
+            }
+        except WebDriverException as e:
+            logger.error(f"Browser error submitting to CSD Portal: {str(e)}")
+            return {
+                'success': False,
+                'error': f"Browser error: {str(e)}"
             }
         except Exception as e:
             logger.error(f"Unexpected error submitting to CSD Portal: {str(e)}", exc_info=True)
@@ -336,6 +374,14 @@ class CSDSubmitter:
                 'success': False,
                 'error': f"Unexpected error: {str(e)}"
             }
+        finally:
+            # Always close the browser
+            if driver:
+                try:
+                    driver.quit()
+                    logger.info("Browser closed")
+                except Exception as e:
+                    logger.warning(f"Error closing browser: {str(e)}")
 
     def _extract_confirmation_number(self, html: str) -> Optional[str]:
         """
